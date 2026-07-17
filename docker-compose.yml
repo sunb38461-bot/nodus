@@ -1,0 +1,19 @@
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-server
+    restart: always
+    expose:
+      - "8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - new-api_default   # 加入 new-api 项目的网络，这样 nginx 才能访问到它
+
+networks:
+  new-api_default:
+    external: true        # 声明这是外部已存在的网络，不是新建

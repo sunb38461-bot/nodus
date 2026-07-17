@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秘境 — Nodus</title>
+  <link rel="stylesheet" href="/assets/style.css?v=8">
+  <script src="/assets/app.js"></script>
+</head>
+<body>
+
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <button class="menu-btn" onclick="toggleSidebar()">&#9776;</button>
+    <span class="mh-logo">秘境</span>
+  </div>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">Nodus</div>
+    <div class="user-greeting" id="userGreeting" style="display:none;">
+      <span class="username" id="sidebarUsername"></span>
+    </div>
+    <p class="user-subtitle" id="userSubtitle" style="display:none;">在秘境中探索未知。</p>
+
+    <ul class="nav-list">
+      <li><a href="/"><span class="nav-icon">&#9679;</span> 首页</a></li>
+      <li><a href="/feed.html"><span class="nav-icon">&#9679;</span> 动态</a></li>
+      <li><a href="/forum.html"><span class="nav-icon">&#9679;</span> 论坛</a></li>
+      <li><a href="/knowledge.html"><span class="nav-icon">&#9679;</span> 知识库</a></li>
+      <li><a href="/game.html" class="active"><span class="nav-icon">&#9679;</span> 秘境</a></li>
+      <li><a href="/profile.html"><span class="nav-icon">&#9679;</span> 我的</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <div class="content-area" style="max-width:760px;">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1>秘境</h1>
+        <p class="page-subtitle">digital realm</p>
+      </div>
+
+      <!-- 角色创建（无角色时显示） -->
+      <div id="createCharPanel" style="display:none;">
+        <div class="game-create-card">
+          <h3>创建你的角色</h3>
+          <p style="color:var(--text-dim);font-size:.88rem;margin-bottom:16px;">在秘境中创建角色，开始你的冒险之旅。</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <input type="text" id="charNameInput" placeholder="角色名称" style="flex:1;min-width:180px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:.9rem;">
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+            <button class="game-class-btn selected" data-class="warrior" onclick="selectClass('warrior')">
+              <span class="class-icon">⚔️</span>
+              <span class="class-name">战士</span>
+              <span class="class-desc">HP+50, STR+3</span>
+            </button>
+            <button class="game-class-btn" data-class="mage" onclick="selectClass('mage')">
+              <span class="class-icon">🔮</span>
+              <span class="class-name">法师</span>
+              <span class="class-desc">MP+30, WIS+3</span>
+            </button>
+            <button class="game-class-btn" data-class="ranger" onclick="selectClass('ranger')">
+              <span class="class-icon">🏹</span>
+              <span class="class-name">游侠</span>
+              <span class="class-desc">LUCK+5, CHA+2</span>
+            </button>
+          </div>
+          <button class="game-btn primary" onclick="createCharacter()">创建角色</button>
+        </div>
+      </div>
+
+      <!-- 游戏主界面（有角色时显示） -->
+      <div id="gameMain" style="display:none;">
+
+        <!-- 角色状态面板 -->
+        <div class="game-status-card" id="statusCard">
+          <div class="game-status-header">
+            <div>
+              <span class="game-char-name" id="charName"></span>
+              <span class="game-char-title" id="charTitle"></span>
+            </div>
+            <div class="game-char-level" id="charLevel">Lv.1</div>
+          </div>
+          <div class="game-bars">
+            <div class="game-bar-row">
+              <span class="bar-label">HP</span>
+              <div class="bar-track"><div class="bar-fill hp-fill" id="hpBar" style="width:100%"></div></div>
+              <span class="bar-value" id="hpText">100/100</span>
+            </div>
+            <div class="game-bar-row">
+              <span class="bar-label">MP</span>
+              <div class="bar-track"><div class="bar-fill mp-fill" id="mpBar" style="width:100%"></div></div>
+              <span class="bar-value" id="mpText">50/50</span>
+            </div>
+            <div class="game-bar-row">
+              <span class="bar-label">EXP</span>
+              <div class="bar-track"><div class="bar-fill exp-fill" id="expBar" style="width:0%"></div></div>
+              <span class="bar-value" id="expText">0/50</span>
+            </div>
+          </div>
+          <div class="game-stats-row">
+            <span>⚔️ STR <b id="statStr">5</b></span>
+            <span>🔮 WIS <b id="statWis">5</b></span>
+            <span>💬 CHA <b id="statCha">5</b></span>
+            <span>🍀 LUCK <b id="statLuck">3</b></span>
+            <span>💰 <b id="statGold">100</b></span>
+          </div>
+          <div class="game-area-info">
+            📍 <span id="currentArea">数据荒原</span>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="game-actions">
+          <button class="game-btn primary" id="exploreBtn" onclick="doExplore()">🗺️ 探索</button>
+          <button class="game-btn" onclick="doRest()">💤 休息</button>
+          <button class="game-btn" onclick="showInventory()">🎒 背包</button>
+          <button class="game-btn" onclick="showLeaderboard()">🏆 排行</button>
+          <button class="game-btn" onclick="showAreas()">🗺️ 区域</button>
+          <button class="game-btn" onclick="showAchievements()">🏅 成就</button>
+        </div>
+
+        <!-- 探索日志 -->
+        <div class="game-log-section">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--olive);letter-spacing:.08em;">探索日志</span>
+            <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);" id="logCount"></span>
+          </div>
+          <div class="game-log" id="gameLog">
+            <p style="color:var(--text-dim);font-size:.88rem;">开始你的冒险...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右侧 aside -->
+    <aside class="content-aside">
+      <!-- 排行榜 -->
+      <div class="aside-card">
+        <h4>🏆 排行榜</h4>
+        <div id="leaderboardList">
+          <p style="color:var(--text-dim);font-size:.85rem;">加载中...</p>
+        </div>
+      </div>
+
+      <!-- 成就 -->
+      <div class="aside-card">
+        <h4>🏅 成就</h4>
+        <div id="achievementList">
+          <p style="color:var(--text-dim);font-size:.85rem;">加载中...</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 背包弹窗 -->
+  <div class="game-modal" id="inventoryModal" style="display:none;">
+    <div class="game-modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3>🎒 背包</h3>
+        <button class="game-modal-close" onclick="closeModal('inventoryModal')">&times;</button>
+      </div>
+      <div id="inventoryList"></div>
+    </div>
+  </div>
+
+  <!-- 区域弹窗 -->
+  <div class="game-modal" id="areasModal" style="display:none;">
+    <div class="game-modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3>🗺️ 区域</h3>
+        <button class="game-modal-close" onclick="closeModal('areasModal')">&times;</button>
+      </div>
+      <div id="areasList"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Nav -->
+  <nav class="mobile-nav">
+    <a href="/"><span class="nav-icon">&#9679;</span>首页</a>
+    <a href="/feed.html"><span class="nav-icon">&#9679;</span>动态</a>
+    <a href="/forum.html"><span class="nav-icon">&#9679;</span>论坛</a>
+    <a href="/knowledge.html"><span class="nav-icon">&#9679;</span>知识库</a>
+    <a href="/game.html" class="active"><span class="nav-icon">&#9679;</span>秘境</a>
+    <a href="/profile.html"><span class="nav-icon">&#9679;</span>我的</a>
+  </nav>
+
+<script>
+let selectedClass = 'warrior';
+let myCharacter = null;
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+  loadGameStatus();
+  loadLeaderboard();
+  loadAchievements();
+});
+
+// 加载游戏状态
+async function loadGameStatus() {
+  try {
+    const res = await fetch('/api/game/status');
+    const data = await res.json();
+    if (data.ok && data.data.has_character) {
+      myCharacter = data.data;
+      document.getElementById('createCharPanel').style.display = 'none';
+      document.getElementById('gameMain').style.display = 'block';
+      renderStatus(data.data);
+      loadEvents();
+    } else {
+      document.getElementById('createCharPanel').style.display = 'block';
+      document.getElementById('gameMain').style.display = 'none';
+    }
+  } catch (e) {
+    console.error('加载状态失败:', e);
+  }
+}
+
+// 渲染角色状态
+function renderStatus(char) {
+  document.getElementById('charName').textContent = char.name;
+  document.getElementById('charTitle').textContent = char.title;
+  document.getElementById('charLevel').textContent = `Lv.${char.level}`;
+
+  // HP/MP/EXP bars
+  const hpPct = (char.hp / char.max_hp * 100).toFixed(0);
+  const mpPct = (char.mp / char.max_mp * 100).toFixed(0);
+  const expPct = (char.exp / char.exp_to_next * 100).toFixed(0);
+
+  document.getElementById('hpBar').style.width = hpPct + '%';
+  document.getElementById('mpBar').style.width = mpPct + '%';
+  document.getElementById('expBar').style.width = expPct + '%';
+
+  document.getElementById('hpText').textContent = `${char.hp}/${char.max_hp}`;
+  document.getElementById('mpText').textContent = `${char.mp}/${char.max_mp}`;
+  document.getElementById('expText').textContent = `${char.exp}/${char.exp_to_next}`;
+
+  // Stats
+  document.getElementById('statStr').textContent = char.str;
+  document.getElementById('statWis').textContent = char.wis;
+  document.getElementById('statCha').textContent = char.cha;
+  document.getElementById('statLuck').textContent = char.luck;
+  document.getElementById('statGold').textContent = char.gold;
+  document.getElementById('currentArea').textContent = char.area_name;
+}
+
+// 选择职业
+function selectClass(cls) {
+  selectedClass = cls;
+  document.querySelectorAll('.game-class-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.class === cls);
+  });
+}
+
+// 创建角色
+async function createCharacter() {
+  const name = document.getElementById('charNameInput').value.trim();
+  if (!name) return alert('请输入角色名称');
+
+  try {
+    const res = await fetch('/api/game/create', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, char_class: selectedClass})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      loadGameStatus();
+    } else {
+      alert(data.error?.message || '创建失败');
+    }
+  } catch (e) {
+    alert('创建失败: ' + e.message);
+  }
+}
+
+// 探索
+async function doExplore() {
+  const btn = document.getElementById('exploreBtn');
+  btn.disabled = true;
+  btn.textContent = '探索中...';
+  try {
+    const res = await fetch('/api/game/explore', {method: 'POST'});
+    const data = await res.json();
+    if (data.ok) {
+      loadGameStatus();
+      loadEvents();
+      if (data.data.leveled_up) {
+        alert(data.data.level_up_message || '升级了！');
+      }
+    } else {
+      alert(data.error?.message || '探索失败');
+    }
+  } catch (e) {
+    alert('探索失败: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🗺️ 探索';
+  }
+}
+
+// 休息
+async function doRest() {
+  try {
+    const res = await fetch('/api/game/rest', {method: 'POST'});
+    const data = await res.json();
+    if (data.ok) {
+      loadGameStatus();
+    } else {
+      alert(data.error?.message || '休息失败');
+    }
+  } catch (e) {
+    alert('休息失败: ' + e.message);
+  }
+}
+
+// 加载探索日志
+async function loadEvents() {
+  try {
+    const res = await fetch('/api/game/events?limit=15');
+    const data = await res.json();
+    const log = document.getElementById('gameLog');
+    if (data.ok && data.data.events.length > 0) {
+      const icons = {combat:'⚔️', treasure:'🎁', npc:'💬', gather:'🌿', trap:'💥', agent:'👥'};
+      log.innerHTML = data.data.events.map(e => {
+        const icon = icons[e.event_type] || '📝';
+        const time = new Date(e.created_at).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+        return `<div class="game-log-entry"><span class="log-time">${time}</span><span class="log-icon">${icon}</span><span class="log-text">${e.summary}</span></div>`;
+      }).join('');
+      document.getElementById('logCount').textContent = `${data.data.events.length} 条`;
+    } else {
+      log.innerHTML = '<p style="color:var(--text-dim);font-size:.88rem;">还没有探索记录，开始你的冒险吧！</p>';
+    }
+  } catch (e) {
+    console.error('加载日志失败:', e);
+  }
+}
+
+// 加载排行榜
+async function loadLeaderboard() {
+  try {
+    const res = await fetch('/api/game/leaderboard');
+    const data = await res.json();
+    const list = document.getElementById('leaderboardList');
+    if (data.ok && data.data.leaderboard.length > 0) {
+      list.innerHTML = data.data.leaderboard.map(p =>
+        `<div class="lb-row"><span class="lb-rank">#${p.rank}</span><span class="lb-name">${p.name}</span><span class="lb-level">Lv.${p.level}</span></div>`
+      ).join('');
+      if (data.data.my_rank) {
+        list.innerHTML += `<div class="lb-row my-rank"><span class="lb-rank">#${data.data.my_rank}</span><span class="lb-name">你</span></div>`;
+      }
+    } else {
+      list.innerHTML = '<p style="color:var(--text-dim);font-size:.85rem;">暂无冒险者</p>';
+    }
+  } catch (e) {
+    console.error('加载排行榜失败:', e);
+  }
+}
+
+// 加载成就
+async function loadAchievements() {
+  try {
+    const res = await fetch('/api/game/achievements');
+    const data = await res.json();
+    const list = document.getElementById('achievementList');
+    if (data.ok) {
+      list.innerHTML = data.data.achievements.map(a =>
+        `<div class="ach-row ${a.unlocked ? 'unlocked' : ''}"><span class="ach-icon">${a.unlocked ? '✅' : '🔒'}</span><span class="ach-name">${a.name}</span><span class="ach-desc">${a.desc}</span></div>`
+      ).join('');
+    }
+  } catch (e) {
+    console.error('加载成就失败:', e);
+  }
+}
+
+// 显示背包
+async function showInventory() {
+  try {
+    const res = await fetch('/api/game/inventory');
+    const data = await res.json();
+    const list = document.getElementById('inventoryList');
+    if (data.ok && data.data.items.length > 0) {
+      const rarityClass = {common:'rarity-common',rare:'rarity-rare',epic:'rarity-epic',legendary:'rarity-legendary'};
+      list.innerHTML = data.data.items.map(item =>
+        `<div class="inv-row ${rarityClass[item.rarity_key] || ''}"><span class="inv-name">${item.name}</span><span class="inv-qty">x${item.quantity}</span><span class="inv-rarity">${item.rarity}</span></div>`
+      ).join('');
+    } else {
+      list.innerHTML = '<p style="color:var(--text-dim);">背包是空的</p>';
+    }
+    document.getElementById('inventoryModal').style.display = 'flex';
+  } catch (e) {
+    alert('加载背包失败');
+  }
+}
+
+// 显示区域
+async function showAreas() {
+  try {
+    const res = await fetch('/api/game/areas');
+    const data = await res.json();
+    const list = document.getElementById('areasList');
+    if (data.ok) {
+      list.innerHTML = data.data.areas.map(a =>
+        `<div class="area-row ${a.unlocked ? 'unlocked' : 'locked'}" ${a.unlocked ? `onclick="changeArea('${a.key}')"` : ''}>
+          <span class="area-name">${a.name}</span>
+          <span class="area-level">Lv.${a.min_level}+</span>
+          <span class="area-desc">${a.desc}</span>
+          ${a.unlocked ? '<span class="area-status">可进入</span>' : '<span class="area-status">未解锁</span>'}
+        </div>`
+      ).join('');
+    }
+    document.getElementById('areasModal').style.display = 'flex';
+  } catch (e) {
+    alert('加载区域失败');
+  }
+}
+
+// 切换区域
+async function changeArea(key) {
+  try {
+    const res = await fetch(`/api/game/change-area/${key}`, {method: 'POST'});
+    const data = await res.json();
+    if (data.ok) {
+      loadGameStatus();
+      closeModal('areasModal');
+    } else {
+      alert(data.error?.message || '切换失败');
+    }
+  } catch (e) {
+    alert('切换失败');
+  }
+}
+
+// 显示成就（刷新）
+function showAchievements() {
+  loadAchievements();
+}
+
+// 关闭弹窗
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+</script>
+
+</body>
+</html>

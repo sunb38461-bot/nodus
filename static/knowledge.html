@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识库 — Nodus</title>
+  <link rel="stylesheet" href="/assets/style.css?v=7">
+  <script src="/assets/app.js"></script>
+</head>
+<body>
+
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <button class="menu-btn" onclick="toggleSidebar()">&#9776;</button>
+    <span class="mh-logo">知识库</span>
+  </div>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      Nodus
+    </div>
+    <div class="user-greeting" id="userGreeting" style="display:none;">
+      <span class="username" id="sidebarUsername"></span>
+    </div>
+    <p class="user-subtitle" id="userSubtitle" style="display:none;">日报、百科和工具箱放在同一个入口里。</p>
+
+    <ul class="nav-list">
+      <li><a href="/"><span class="nav-icon">&#9679;</span> 首页</a></li>
+      <li><a href="/feed.html"><span class="nav-icon">&#9679;</span> 动态</a></li>
+      <li><a href="/forum.html"><span class="nav-icon">&#9679;</span> 论坛</a></li>
+      <li><a href="/knowledge.html" class="active"><span class="nav-icon">&#9679;</span> 知识库</a></li>
+      <li><a href="/game.html"><span class="nav-icon">&#9679;</span> 秘境</a></li>
+      <li><a href="/profile.html"><span class="nav-icon">&#9679;</span> 我的</a></li>
+    </ul>
+
+
+  </aside>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <div class="content-area" style="max-width:760px;">
+
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <h1>知识库</h1>
+          <p class="page-subtitle">collective wisdom</p>
+        </div>
+        <div class="search-bar" style="margin-bottom:0;max-width:360px;flex:1;">
+          <input type="text" placeholder="搜索日报、百科条目、工具箱" id="searchInput">
+          <button style="background:var(--olive);color:#fff;font-size:.75rem;padding:8px 14px;">ASK</button>
+        </div>
+      </div>
+
+      <!-- Report Archive Section -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--olive);letter-spacing:.08em;text-transform:uppercase;">日报归档</span>
+        <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);">latest</span>
+      </div>
+
+      <!-- Featured Report Card -->
+      <div class="kb-featured" id="featuredReport">
+        <p style="color:var(--text-light);font-size:.88rem;">正在加载...</p>
+      </div>
+
+      <!-- Recent Updates Section -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:28px 0 14px;">
+        <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--olive);letter-spacing:.08em;text-transform:uppercase;">最近更新</span>
+        <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);">fresh</span>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="tag-filter" id="kbFilter">
+        <button class="active" data-filter="all">全部</button>
+        <button data-filter="report">日报</button>
+        <button data-filter="wiki">百科条目</button>
+        <button data-filter="tool">工具箱</button>
+      </div>
+
+      <!-- Knowledge Grid -->
+      <div class="kb-grid" id="kbGrid"></div>
+
+    </div>
+
+    <!-- Aside Area -->
+    <div class="aside-area">
+
+      <!-- Content Categories -->
+      <div class="aside-card">
+        <h4>内容分类 <span style="float:right;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">browse</span></h4>
+
+        <div class="category-list-item">
+          <div class="cat-icon" style="background:#fde8e8;">&#128197;</div>
+          <div class="cat-info">
+            <div class="cat-name">日报</div>
+            <div class="cat-desc">按日期回看社区发生了什么，顺着时间线找上下文。</div>
+          </div>
+          <div class="cat-count" id="catCountReport">--<small>days</small></div>
+        </div>
+
+        <div class="category-list-item">
+          <div class="cat-icon" style="background:#e8f0fe;">&#128218;</div>
+          <div class="cat-info">
+            <div class="cat-name">百科条目</div>
+            <div class="cat-desc">人物、概念、项目、社区事件，沉到长期可查的条目里。</div>
+          </div>
+          <div class="cat-count" id="catCountWiki">--<small>docs</small></div>
+        </div>
+
+        <div class="category-list-item">
+          <div class="cat-icon" style="background:#e8f5e9;">&#128295;</div>
+          <div class="cat-info">
+            <div class="cat-name">工具箱</div>
+            <div class="cat-desc">提示词、短教程、配置片段，放能立刻拿来用的东西。</div>
+          </div>
+          <div class="cat-count" id="catCountTool">--<small>kits</small></div>
+        </div>
+      </div>
+
+      <!-- Common Tools -->
+      <div class="aside-card">
+        <h4>常用工具 <span style="float:right;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">kits</span></h4>
+
+        <div style="padding:12px 0;border-bottom:1px solid var(--card-border);">
+          <div style="font-size:.9rem;font-weight:500;color:var(--text);margin-bottom:4px;">Prompt 工程</div>
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5;">缓存、记忆、思考控制与跨模型适配实战。</div>
+        </div>
+        <div style="padding:12px 0;">
+          <div style="font-size:.9rem;font-weight:500;color:var(--text);margin-bottom:4px;">RAG 知识库</div>
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5;">Embedding、Reranker、混合召回和运维排障。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <span>开发者 <strong>Ggo</strong></span>
+      <span class="footer-sep">·</span>
+      <span>技术支持 <strong>Qoder</strong></span>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="mobile-nav">
+    <a href="/"><span class="nav-icon">&#9679;</span>首页</a>
+    <a href="/feed.html"><span class="nav-icon">&#9679;</span>动态</a>
+    <a href="/forum.html"><span class="nav-icon">&#9679;</span>论坛</a>
+    <a href="/knowledge.html" class="active"><span class="nav-icon">&#9679;</span>知识库</a>
+    <a href="/game.html"><span class="nav-icon">&#9679;</span>秘境</a>
+    <a href="/profile.html"><span class="nav-icon">&#9679;</span>我的</a>
+  </nav>
+
+  <script>
+    let currentUser = null;
+    let kbItems = [];
+
+    async function init() {
+      const meResp = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const meData = await meResp.json();
+      if (!meData.ok) { window.location.href = '/login.html'; return; }
+      currentUser = meData.data;
+
+      const name = currentUser.display_name || currentUser.username;
+      document.getElementById('userGreeting').style.display = 'block';
+      document.getElementById('userSubtitle').style.display = 'block';
+      document.getElementById('sidebarUsername').textContent = name;
+
+      await Promise.all([loadFeaturedReport(), loadKnowledgeItems()]);
+    }
+
+    async function loadFeaturedReport() {
+      try {
+        const resp = await fetch('/api/reports/latest', { credentials: 'same-origin' });
+        const data = await resp.json();
+        if (!data.ok) return;
+        const el = document.getElementById('featuredReport');
+        if (!data.data.report) {
+          el.innerHTML = '<p style="color:var(--text-light);font-size:.88rem;">暂无日报</p>';
+          return;
+        }
+        const r = data.data.report;
+        const d = new Date(r.report_date);
+        const dayNum = String(d.getDate()).padStart(2, '0');
+        const monthNum = String(d.getMonth() + 1).padStart(2, '0');
+        const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const weekday = weekdays[d.getDay()];
+
+        el.innerHTML = `
+          <div class="kb-date-badge">
+            <span class="day">${monthNum}.${dayNum}</span>
+            <span class="date-info">${d.getFullYear()} &middot; ${weekday}</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--olive);margin-bottom:8px;letter-spacing:.05em;">
+            &#127803; 群聊日报 &middot; ${r.report_date}
+          </div>
+          <h2>${escapeHtml(r.summary.slice(0, 50))}</h2>
+          <p class="kb-summary">${escapeHtml(r.summary)}</p>
+          <div class="kb-tags">
+            <span class="tag">324 msgs</span>
+            <span class="tag">26 users</span>
+            <span class="tag">NapCat / Codex</span>
+          </div>
+          <button class="btn btn-primary" style="font-size:.82rem;padding:8px 20px;">READ LOG &rarr;</button>
+        `;
+      } catch (err) {
+        console.error('加载日报失败:', err);
+      }
+    }
+
+    async function loadKnowledgeItems(category = '') {
+      try {
+        const url = category ? `/api/knowledge/picks?limit=20&category=${category}` : '/api/knowledge/picks?limit=20';
+        const resp = await fetch(url, { credentials: 'same-origin' });
+        const data = await resp.json();
+        if (!data.ok) return;
+        kbItems = data.data.items;
+        renderKbGrid(kbItems);
+      } catch (err) {
+        console.error('加载知识库失败:', err);
+      }
+    }
+
+    const categoryLabels = { wiki: '百科条目', tool: '工具箱', report: '日报' };
+    const categoryIcons = { wiki: '&#128218;', tool: '&#128295;', report: '&#128240;' };
+
+    function renderKbGrid(items) {
+      const grid = document.getElementById('kbGrid');
+      if (items.length === 0) {
+        grid.innerHTML = '<p style="color:var(--text-light);font-size:.88rem;grid-column:1/-1;text-align:center;padding:24px;">暂无知识库条目</p>';
+        return;
+      }
+      grid.innerHTML = items.map(item => {
+        const d = new Date(item.created_at);
+        const dateStr = `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const cat = item.category || 'wiki';
+        const label = categoryLabels[cat] || '百科条目';
+        const icon = categoryIcons[cat] || '&#128218;';
+        return `
+          <div class="kb-card" onclick="showKbDetail(${item.id})">
+            <div class="kb-card-tag">${icon} ${label} &middot; ${dateStr}</div>
+            <div class="kb-card-title">${escapeHtml(item.title)}</div>
+            <div class="kb-card-desc">${escapeHtml((item.content || '').slice(0, 60))}...</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showKbDetail(itemId) {
+      const item = kbItems.find(i => i.id === itemId);
+      if (!item) return;
+      const cat = item.category || 'wiki';
+      const label = categoryLabels[cat] || '百科条目';
+      const icon = categoryIcons[cat] || '&#128218;';
+      const d = new Date(item.created_at);
+      const dateStr = d.toLocaleDateString('zh-CN');
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay show';
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:560px;">
+          <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--olive);margin-bottom:12px;">
+            ${icon} ${label} &middot; ${dateStr} &middot; ${escapeHtml(item.author_name)}
+          </div>
+          <h3 style="font-size:1.3rem;margin-bottom:16px;">${escapeHtml(item.title)}</h3>
+          <div style="font-size:.9rem;color:var(--text-dim);line-height:1.7;white-space:pre-wrap;max-height:60vh;overflow-y:auto;">${escapeHtml(item.content)}</div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    // KB filter tabs
+    document.getElementById('kbFilter').addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      document.querySelectorAll('#kbFilter button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      loadKnowledgeItems(filter === 'all' ? '' : filter);
+    });
+
+    init();
+
+    // 动态加载分类计数
+    async function loadCategoryCounts() {
+      const data = await apiFetch('/api/knowledge/picks?limit=50');
+      if (!data.ok) return;
+      const items = data.data.items;
+      const counts = { report: 0, wiki: 0, tool: 0 };
+      items.forEach(item => {
+        if (counts.hasOwnProperty(item.category)) counts[item.category]++;
+      });
+      document.getElementById('catCountReport').innerHTML = `${counts.report}<small>days</small>`;
+      document.getElementById('catCountWiki').innerHTML = `${counts.wiki}<small>docs</small>`;
+      document.getElementById('catCountTool').innerHTML = `${String(counts.tool).padStart(2, '0')}<small>kits</small>`;
+    }
+    loadCategoryCounts();
+  </script>
+</body>
+</html>

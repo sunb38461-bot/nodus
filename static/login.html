@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 — Nodus</title>
+  <link rel="stylesheet" href="/assets/style.css?v=7">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="card auth-card">
+      <h2 style="margin-top:8px;">欢迎回来</h2>
+      <p class="subtitle">登录以进入 Nodus 社区</p>
+
+      <div class="auth-error" id="authError"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" name="username" placeholder="输入用户名" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" placeholder="输入密码" required autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="remember" name="remember">
+            <span>记住我（30 天免登录）</span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">登 录</button>
+      </form>
+
+      <p class="alt-link">还没有账号？<a href="/register.html">立即注册</a></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const errorBox = document.getElementById('authError');
+
+    // 检查是否已登录
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) window.location.href = '/'; })
+      .catch(() => {});
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.remove('show');
+
+      const body = {
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        remember: document.getElementById('remember').checked
+      };
+
+      try {
+        const resp = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Nodus' },
+          credentials: 'same-origin',
+          body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          window.location.href = '/';
+        } else {
+          errorBox.textContent = data.error?.message || '登录失败';
+          errorBox.classList.add('show');
+        }
+      } catch (err) {
+        errorBox.textContent = '网络错误，请重试';
+        errorBox.classList.add('show');
+      }
+    });
+  </script>
+</body>
+</html>

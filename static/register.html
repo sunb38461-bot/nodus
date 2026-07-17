@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 — Nodus</title>
+  <link rel="stylesheet" href="/assets/style.css?v=9">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="card auth-card">
+      <h2 style="margin-top:8px;">加入 Nodus</h2>
+      <p class="subtitle">创建你的社区账号</p>
+
+      <div class="invite-banner" id="inviteBanner" style="display:none;"></div>
+
+      <div class="auth-error" id="authError"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" name="username" placeholder="3-32 位字母数字下划线" required autocomplete="username">
+          <div class="error-msg" id="usernameError"></div>
+        </div>
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" placeholder="至少 8 位" required autocomplete="new-password">
+          <div class="error-msg" id="passwordError"></div>
+        </div>
+        <div class="form-group">
+          <label for="password2">确认密码</label>
+          <input type="password" id="password2" name="password2" placeholder="再次输入密码" required autocomplete="new-password">
+          <div class="error-msg" id="password2Error"></div>
+        </div>
+        <div class="form-group">
+          <label for="displayName">昵称（可选）</label>
+          <input type="text" id="displayName" name="displayName" placeholder="网页展示昵称">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">注 册</button>
+      </form>
+
+      <p class="alt-link">已有账号？<a href="/login.html">立即登录</a></p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const errorBox = document.getElementById('authError');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const password2Input = document.getElementById('password2');
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.add('show');
+      el.previousElementSibling?.classList.add('error');
+    }
+    function clearError(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('show');
+      el.previousElementSibling?.classList.remove('error');
+    }
+
+    // 实时校验
+    usernameInput.addEventListener('input', () => {
+      const v = usernameInput.value.trim();
+      if (v && !/^[a-zA-Z0-9_]{3,32}$/.test(v)) {
+        showError('usernameError', '用户名需为 3-32 位字母数字下划线');
+      } else { clearError('usernameError'); }
+    });
+    passwordInput.addEventListener('input', () => {
+      if (passwordInput.value && passwordInput.value.length < 8) {
+        showError('passwordError', '密码至少 8 位');
+      } else { clearError('passwordError'); }
+    });
+    password2Input.addEventListener('input', () => {
+      if (password2Input.value && password2Input.value !== passwordInput.value) {
+        showError('password2Error', '两次密码不一致');
+      } else { clearError('password2Error'); }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.remove('show');
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const password2 = password2Input.value;
+      const display_name = document.getElementById('displayName').value.trim();
+
+      let hasError = false;
+      if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
+        showError('usernameError', '用户名需为 3-32 位字母数字下划线'); hasError = true;
+      }
+      if (password.length < 8) {
+        showError('passwordError', '密码至少 8 位'); hasError = true;
+      }
+      if (password !== password2) {
+        showError('password2Error', '两次密码不一致'); hasError = true;
+      }
+      if (hasError) return;
+
+      try {
+        const resp = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'Nodus' },
+          body: JSON.stringify({ username, password, display_name, invite_code: inviteCode })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          window.location.href = `/login.html?username=${encodeURIComponent(username)}`;
+        } else {
+          errorBox.textContent = data.error?.message || '注册失败';
+          errorBox.classList.add('show');
+        }
+      } catch (err) {
+        errorBox.textContent = '网络错误，请重试';
+        errorBox.classList.add('show');
+      }
+    });
+
+    // 从 URL 预填用户名
+    const params = new URLSearchParams(window.location.search);
+    const prefill = params.get('username');
+    if (prefill) {
+      usernameInput.value = prefill;
+    }
+
+    // 邀请码：读取 ?invite 并展示邀请人
+    let inviteCode = (params.get('invite') || '').trim();
+    const inviteBanner = document.getElementById('inviteBanner');
+    if (inviteCode) {
+      fetch(`/api/auth/invite-info?code=${encodeURIComponent(inviteCode)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.ok && d.data?.inviter) {
+            inviteBanner.innerHTML = `🎉 <strong>${d.data.inviter}</strong> 邀请你加入 Nodus`;
+            inviteBanner.style.display = 'block';
+          } else {
+            inviteCode = '';  // 邀请码无效，不提交
+          }
+        })
+        .catch(() => { inviteCode = ''; });
+    }
+  </script>
+</body>
+</html>
